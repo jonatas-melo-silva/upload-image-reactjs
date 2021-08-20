@@ -1,23 +1,69 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+
+import api from './config/configApi';
 
 function App() {
+  const [image, setImage] = useState('');
+  const [status, setStatus] = useState({
+    type: '',
+    message: '',
+  });
+
+  const uploadImage = async (event) => {
+    event.preventDefault();
+
+    const formData = new FormData();
+    formData.append('image', image);
+
+    const headers = {
+      headers: {
+        'Content-Type': 'multipart/json',
+      },
+    };
+
+    const url = '/images';
+    await api
+      .post(url, formData, headers)
+      .then((response) => {
+        setStatus({
+          type: 'success',
+          message: response.data.message,
+        });
+      })
+      .catch((error) => {
+        if (error.response) {
+          setStatus({
+            type: 'error',
+            message: error.response.data.message,
+          });
+        } else {
+          setStatus({
+            type: 'error',
+            message: 'Tente novamente mais tarde!',
+          });
+        }
+      });
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <h1>Upload</h1>
+      {status.type === 'success' ? (
+        <p style={{ color: 'green' }}>{status.message}</p>
+      ) : (
+        <p style={{ color: 'red' }}>{status.message}</p>
+      )}
+      <form onSubmit={uploadImage}>
+        <label>Imagem: </label>
+        <input
+          type='file'
+          name='image'
+          onChange={(event) => setImage(event.target.files[0])}
+        />
+        <br />
+        <br />
+        <button type='submit'>Salvar</button>
+      </form>
     </div>
   );
 }
